@@ -1,0 +1,107 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="here/main_template/macros/master"
+      xml:lang="en"
+      lang="en"
+      i18n:domain="jquery.pyproxy">
+
+  <metal:javascript_head fill-slot="javascript_head_slot">
+    <script type="text/javascript">
+      jq(document).ready(function() {
+        jq('#autosave_sample').autosaveform();
+      });
+    </script>
+  </metal:javascript_head>
+  <body>
+    <div metal:fill-slot="main">
+      <h1>This page shows an example of autosave form</h1>
+
+      <form id="autosave_sample">
+        <div class="field">
+          <label>A text field</label>
+          <input type="text" name="text_field" />
+        </div>
+
+        <div class="field">
+          <label>A radio field</label>
+          <label>
+            <input type="radio" name="radio_field" value="radio1" />
+            first choice
+          </label>
+
+          <label>
+            <input type="radio" name="radio_field" value="radio2" />
+            second choice
+          </label>
+
+          <label>
+            <input type="radio" name="radio_field" value="radio3" />
+            third choice
+          </label>
+        </div>
+
+        <div class="field">
+          <label>A single checkbox field</label>
+          <label>
+            <input type="checkbox" name="checkbox_field" value="checkbox" />
+            Yes or no ?
+          </label>
+        </div>
+
+        <div class="field">
+          <label>A multiple checkbox field</label>
+          <label>
+            <input type="checkbox" name="multi_checkbox_field" value="checkbox1" />
+            First choice
+          </label>
+
+          <label>
+            <input type="checkbox" name="multi_checkbox_field" value="checkbox2" />
+            Second choice
+          </label>
+
+          <label>
+            <input type="checkbox" name="multi_checkbox_field" value="checkbox3" />
+            Third choice
+          </label>
+        </div>
+
+        <div class="field">
+          <label>A single select field</label>
+          <select name="select_field">
+            <option value="select1">First choice</option>
+            <option value="select2">Second choice</option>
+            <option value="select3">Third choice</option>
+            <option value="select4">Fourth choice</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>A multiple select field</label>
+          <select name="multi_select_field"
+                  multiple="multiple"
+                  size="4">
+            <option value="select1">First choice</option>
+            <option value="select2">Second choice</option>
+            <option value="select3">Third choice</option>
+            <option value="select4">Fourth choice</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>A text area</label>
+          <textarea name="textarea_field">
+          </textarea>
+        </div>
+
+        <div class="field">
+          <label>A non-registered field</label>
+          <input type="text" name="unregistered" />
+          <p class="discreet">The value for this field will not be saved</p>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

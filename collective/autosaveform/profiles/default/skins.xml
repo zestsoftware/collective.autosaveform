@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<object
+    name="portal_skins">
+ <object name="autosaveform"
+         meta_type="Filesystem Directory View"
+         directory="collective.autosaveform:skins/autosaveform" />
+ <skin-path name="*">
+  <layer name="autosaveform" insert-after="custom"/>
+ </skin-path>
+</object>
