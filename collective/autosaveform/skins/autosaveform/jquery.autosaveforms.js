@@ -33,6 +33,6 @@
 	this.find(':input').change(save_form);
 
 	// We also save data every 5 seconds.
-	//setTimeout(auto_save, 5000);
+	setTimeout(auto_save, 5000);
     }
 })(jQuery)
