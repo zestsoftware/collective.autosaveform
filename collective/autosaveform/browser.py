@@ -10,20 +10,31 @@ import config
 class AutoSaveAjax(BrowserView):
     @property
     def autosave_tool(self):
+        """ Return the tool created by the package.
+        """
         return getToolByName(self.context, 'portal_autosaveform')
 
     @property
     def mtool(self):
+        """ Returns the membership tool.
+        """
         return getToolByName(aq_inner(self.context),
                              'portal_membership')
 
     def get_user_id(self):
+        """ Returns current user id.
+        Return None if the user is not logged in.
+        """
         if self.mtool.isAnonymousUser():
             return
         user = self.mtool.getAuthenticatedMember()
         return user.id
 
     def get_fields(self):
+        """ Returns a JSON list of all registered fields
+        for the form identified by 'form_id' passed as
+        a GET or POST parameter.
+        """
         form = self.request.form
         form_id = form.get('form_id', None)
 
@@ -36,6 +47,9 @@ class AutoSaveAjax(BrowserView):
             return
 
     def get_saved_version(self):
+        """ Returns the saved version of the form identified by the 'form_id'
+        GET/POST parameter.
+        """
         form_id = self.request.form.get('form_id', None)
         user_id = self.get_user_id()
         if form_id:
@@ -46,6 +60,8 @@ class AutoSaveAjax(BrowserView):
         return json.dumps({'version': version})
 
     def save_form(self):
+        """ Saves all values of the submitted form.
+        """
         form = self.request.form
         form_id = form.get('form_id', None)
         version = form.get('form_version', None)
@@ -68,6 +84,8 @@ class AutoSaveAjax(BrowserView):
 
     @jquery
     def load_form(self):
+        """ Updates the page with the stored data.
+        """
         form = self.request.form
         form_id = form.get('form_id', None)
         user_id = self.get_user_id()
@@ -107,6 +125,8 @@ class AutoSaveAjax(BrowserView):
         return jq
         
 class RegisterSampleForm(BrowserView):
+    """ Simple view use to enable the form located at page 'autosave_sample'
+    """
     def __call__(self):
         tool = getToolByName(self.context, 'portal_autosaveform')
         try:

@@ -86,6 +86,8 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
         self.update_form_fields(form_id, fields)
 
     def get_form_fields(self, form_id):
+        """ Returns the list of registered field for the form.
+        """
         forms = self._get_forms_list()
         if not form_id in forms:
             raise IndexError('Unknown id "%s": this form has not been registered' % form_id)
@@ -93,6 +95,8 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
         return dict([(k, v) for k, v in forms[form_id]['fields'].items()])
 
     def get_saved_version(self, form_id, user_id):
+        """ Returns the saved version of the form.
+        """
         versions = self._get_saved_versions()
         try:
             return versions[form_id][user_id]

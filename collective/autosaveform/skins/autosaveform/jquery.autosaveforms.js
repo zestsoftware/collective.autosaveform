@@ -17,12 +17,14 @@
     var db_save_version = 0;
 
     function autosave_debug(msg) {
+	// Simple debug function.
 	if (options['debug_mode'] && typeof(console) != 'undefined') {
 	    console.log('[collective.autosaveform] ' + msg);
 	}
     }
 
     function initDatabase() {
+	// Checks if local storage is enabled.
 	try {
 	    db = window['localStorage'];
 	} catch (e) {
@@ -31,6 +33,8 @@
     }
 
     function clean_data(field_name) {
+	// Removes all entries for the form. If field_name is specified,
+	// only deletes entries for this field.
 	if (typeof(db) == 'undefined') {
 	    return;
 	}
@@ -57,6 +61,7 @@
     };
 
     function insert_data(field_name, value) {
+	// Insert a new entry in the local database.
 	var key = db_id + '[' + form_id + '][fields][' + field_name + ']';
 		if (typeof(value) == 'string') {
 	    db.setItem(key, value);
@@ -77,6 +82,10 @@
     }
 
     function save_form() {
+	// Main function. Stores the form in the local storage if available.
+	// If not or if the maximum amount of local save has been reached, sends
+	// the data to the server.
+
 	var data = $.pyproxy_form_to_dict('#' + form_id);
 	data['form_id'] = form_id;
 	data['form_version'] = db_save_version;
@@ -100,12 +109,14 @@
     }
 
     function auto_save() {
+	// Function than saves automatically every x seconds.
 	save_form();
 	setTimeout(auto_save, options['auto_save_delay']);
     }
 
     function use_local_version() {
-	/* Return true is the local version is younger than the remote one. */
+	// Return true is the local version is younger than the remote one.
+
 	var remote_version, local_version;
 
 	$.ajax({
@@ -137,6 +148,8 @@
     }
 
     function load_local_data() {
+	// Updates the form using the local data.
+
 	var data = {};
 	var fields = [];
 	var field_name, value_count, value;
