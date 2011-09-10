@@ -10,7 +10,7 @@
   <metal:javascript_head fill-slot="javascript_head_slot">
     <script type="text/javascript">
       jq(document).ready(function() {
-        jq('#autosave_sample').autosaveform();
+        jq('#autosave_sample').autosaveform({'debug_mode': true});
       });
     </script>
   </metal:javascript_head>

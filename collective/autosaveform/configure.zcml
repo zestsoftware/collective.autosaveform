@@ -37,6 +37,22 @@
 
   <browser:page
       for="*"
+      name="jq_autosave_get_fields"
+      class=".browser.AutoSaveAjax"
+      attribute="get_fields"
+      permission="zope2.View"
+      />
+
+  <browser:page
+      for="*"
+      name="jq_autosave_get_version"
+      class=".browser.AutoSaveAjax"
+      attribute="get_saved_version"
+      permission="zope2.View"
+      />
+
+  <browser:page
+      for="*"
       name="register_autosaveform_sample"
       class=".browser.RegisterSampleForm"
       permission="zope2.View"

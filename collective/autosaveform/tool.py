@@ -70,6 +70,10 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
         return self._get_anno_by_key('autosave_form_values',
                                      PersistentDict)
 
+    def _get_saved_versions(self):
+        return self._get_anno_by_key('autosave_form_versions',
+                                     PersistentDict)
+
     def register_form(self, form_id, fields):
         """ Create a new entry in the list of forms.
         Raises an IndexError exception if the id is already in use.
@@ -87,6 +91,13 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
             raise IndexError('Unknown id "%s": this form has not been registered' % form_id)
 
         return dict([(k, v) for k, v in forms[form_id]['fields'].items()])
+
+    def get_saved_version(self, form_id, user_id):
+        versions = self._get_saved_versions()
+        try:
+            return versions[form_id][user_id]
+        except:
+            return -1
 
     def update_form_fields(self, form_id, fields):
         """ Updates the list of fields for a form.
@@ -106,12 +117,13 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
 
             forms[form_id]['fields'][field_id] = field_type
 
-    def save_form(self, form_id, user_id, data):
+    def save_form(self, form_id, user_id, version, data):
         """ Registers, for the user, the values entered in
         the form.
         """
         forms = self._get_forms_list()
         values = self._get_saved_values()
+        versions = self._get_saved_versions()
 
         if not form_id in forms:
             raise IndexError('Unknown id "%s": this form has not been registered' % form_id)
@@ -122,6 +134,11 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
         values[form_id][user_id] = PersistentDict()
         for key, value in data.items():
             values[form_id][user_id][key] = value
+
+        if not form_id in versions:
+            versions[form_id] = PersistentDict()
+
+        versions[form_id][user_id] = version
 
     def load_form(self, form_id, user_id):
         """ Fetches the values the user entered for a given form.
@@ -134,6 +151,13 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
         been processed.
         """
         values = self._get_saved_values()
-        del values[form_id][user_id]
+        try:
+            del values[form_id][user_id]
+        except:
+            pass
+        try:
+            del versions[form_id][user_id]
+        except:
+            pass
 
 atapi.registerType(AutoSaveFormTool, config.PROJECTNAME)

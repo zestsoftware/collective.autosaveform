@@ -1,6 +1,7 @@
 from Acquisition import aq_inner
 from Products.Five import BrowserView
 from Products.CMFCore.utils import getToolByName
+import simplejson as json
 
 from jquery.pyproxy.plone import jquery, JQueryProxy
 
@@ -22,9 +23,32 @@ class AutoSaveAjax(BrowserView):
         user = self.mtool.getAuthenticatedMember()
         return user.id
 
+    def get_fields(self):
+        form = self.request.form
+        form_id = form.get('form_id', None)
+
+        if form_id is None:
+            return
+
+        try:
+            return json.dumps(self.autosave_tool.get_form_fields(form_id).keys())
+        except IndexError:
+            return
+
+    def get_saved_version(self):
+        form_id = self.request.form.get('form_id', None)
+        user_id = self.get_user_id()
+        if form_id:
+            version = self.autosave_tool.get_saved_version(form_id, user_id)
+        else:
+            version = -1
+            
+        return json.dumps({'version': version})
+
     def save_form(self):
         form = self.request.form
         form_id = form.get('form_id', None)
+        version = form.get('form_version', None)
         user_id = self.get_user_id()
 
         if form_id is None or user_id is None:
@@ -40,7 +64,7 @@ class AutoSaveAjax(BrowserView):
         for field_name, field_type in fields.items():
             data[field_name] = form.get(field_name, None)
 
-        self.autosave_tool.save_form(form_id, user_id, data)
+        self.autosave_tool.save_form(form_id, user_id, version, data)
 
     @jquery
     def load_form(self):
