@@ -31,9 +31,9 @@ class AutoSaveAjax(BrowserView):
         return user.id
 
     def get_fields(self):
-        """ Returns a JSON list of all registered fields
-        for the form identified by 'form_id' passed as
-        a GET or POST parameter.
+        """ Returns a JSON dictionnary of all registered fields
+        and associated type for the form identified by 'form_id'
+        passed as a GET or POST parameter.
         """
         form = self.request.form
         form_id = form.get('form_id', None)
@@ -42,7 +42,7 @@ class AutoSaveAjax(BrowserView):
             return
 
         try:
-            return json.dumps(self.autosave_tool.get_form_fields(form_id).keys())
+            return json.dumps(self.autosave_tool.get_form_fields(form_id))
         except IndexError:
             return
 

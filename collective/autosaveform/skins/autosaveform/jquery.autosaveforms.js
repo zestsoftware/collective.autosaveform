@@ -16,6 +16,13 @@
     var db_save_count = 0;
     var db_save_version = 0;
 
+    // COnfig variables.
+    var TEXT = 0;
+    var CHECKBOX = 1;
+    var RADIO = 2;
+    var SELECT = 3;
+    var TEXTAREA = 4;
+
     function autosave_debug(msg) {
 	// Simple debug function.
 	if (options['debug_mode'] && typeof(console) != 'undefined') {
@@ -32,6 +39,29 @@
 	}
     }
 
+    function base_key() {
+	// Provides the base key used to store data in local storage.
+	// returns something like collective.autosaveform[my_form].
+
+	return db_id + '[' + form_id + ']';
+    }
+
+    function get_data_key(field_name, appendix) {
+	// Returns the key use to store a field value. If appendix is given,
+	// it must be the list of subkeys.
+	// get_data_key('my_field') -> 'collective.autosaveform[my_form][my_field]'
+	// get_data_key('my_field', ['subkey', 'subkey2']) -> 'collective.autosaveform[my_form][my_field][subkey][subkey2]'
+
+	var key = base_key() + '[fields]';
+	key += '[' + field_name + ']';
+	if (typeof(appendix) != 'undefined') {
+	    for (var i = 0; i < appendix.length; i++) {
+		key += '[' + appendix[i] + ']';
+	    }
+	}
+	return key;
+    }
+
     function clean_data(field_name) {
 	// Removes all entries for the form. If field_name is specified,
 	// only deletes entries for this field.
@@ -39,14 +69,16 @@
 	    return;
 	}
 
-	var key = db_id + '[' + form_id + ']';
+	var key;
 	if (typeof(field_name) == 'string') {
-	    key += '[fields][' + field_name + ']';
+	    key = get_data_key(field_name);
+	} else {
+	    key = base_key();
 	}
 
 	// We seek for the keys for have to be deleted.
 	var to_delete = [];
-	for (entry in db) {
+	for (var entry in db) {
 	    if (entry.indexOf(key) == 0) {
 		to_delete[to_delete.length] = entry;
 	    }
@@ -55,16 +87,18 @@
 	autosave_debug('Deleting entries: ' + to_delete);
 
 	// We delete the entries.
-	for (i = 0; i < to_delete.length; i++) {
+	for (var i = 0; i < to_delete.length; i++) {
 	    db.removeItem(to_delete[i]);
 	}
     };
 
     function insert_data(field_name, value) {
 	// Insert a new entry in the local database.
-	var key = db_id + '[' + form_id + '][fields][' + field_name + ']';
-		if (typeof(value) == 'string') {
-	    db.setItem(key, value);
+ 
+	clean_data(field_name);
+
+	if (typeof(value) == 'string') {
+	    db.setItem(get_data_key(field_name), value);
 	    return;
 	}
 
@@ -75,10 +109,83 @@
 	// We have a list, we need to store the number of values
 	// and each values.
 	var len = value.length;
-	db.setItem(key + '[count]', len);
-	for (i = 0; i < len; i++) {
-	    db.setItem(key + '[values][' + i + ']', value[i]);
+	db.setItem(get_data_key(field_name, ['count']), len);
+
+	for (var i = 0; i < value.length; i++) {
+	    db.setItem(get_data_key(field_name, ['values', i]), value[i]);
 	}
+    }
+
+    function get_data(field_name) {
+	// Returns the value saved in the local database. Return null if nothing found.
+	var value_count = db.getItem(get_data_key(field_name, ['count']));
+	var value = null;
+	var tmp;
+
+	if (value_count == null) {
+	    key = get_data_key(field_name);
+	    value = db.getItem(key);
+	} else {
+	    value = [];
+	    var value_index = 0;
+	    for (var j = 0; j < parseInt(value_count); j++) {
+		key = get_data_key(field_name, ['values', j])
+		tmp = db.getItem(key);
+		if (typeof(tmp) != 'undefined') {
+		    value[value_index] = tmp;
+		    value_index++;
+		}
+	    }
+	}
+
+	return value;
+    }
+
+    function load_local_data() {
+	// Updates the form using the local data.
+
+	$.ajax({
+	    type: 'POST',
+	    url: 'jq_autosave_get_fields',
+	    data: {form_id: form_id},
+	    dataType: 'json',
+	    async: false,
+	    success: function(data) {
+		var field_name, field_type, value, i;
+
+		for (field_name in data) {
+		    field_type = data[field_name];
+		    value = get_data(field_name);
+
+		    if (value == null) {
+			continue;
+		    }
+
+		    if (field_type == SELECT) {
+			if (typeof(value) == 'string') {
+			    value = [value];
+			}
+			for (i = 0; i < value.length; i++) {
+			    $('#' + form_id + ' select[name=' + field_name + '] option[value=' + value[i] + ']').attr('selected', 'selected')
+			}
+			continue;
+		    }
+
+		    if (field_type == CHECKBOX || field_type == RADIO) {
+			if (typeof(value) == 'string') {
+			    value = [value];
+			}
+
+			for (i = 0; i < value.length; i++) {
+			    $('#' + form_id + ' input[name=' + field_name + '][value=' + value[i] + ']').attr('checked', 'checked')
+			}
+			continue;
+		    }
+
+		    $('#' + form_id + ' [name=' + field_name + ']').val(value);
+		}
+	    },
+	});
     }
 
     function save_form() {
@@ -90,7 +197,7 @@
 	data['form_id'] = form_id;
 	data['form_version'] = db_save_version;
 
-	if (typeof(db) == undefined || db_save_count == options['localsave_count']) {
+	if (typeof(db) == 'undefined' || db_save_count == options['localsave_count']) {
 	    // There is no database, so we always send data to the server or we reached
 	    // the maximum amount of local saves.
 	    // After the save is succesful, we remove the local data.
@@ -98,12 +205,12 @@
 	    db_save_count = 0;
 	} else {
 	    // We save into the local database to avoid overload of the server.
-	    for (field_name in data) {
+	    for (var field_name in data) {
 		insert_data(field_name, data[field_name]);
 	    }
 
 	    db_save_version += 1;
-	    db.setItem(db_id + '[' +form_id + '][version]', db_save_version);
+	    db.setItem(base_key() + '[version]', db_save_version);
 	    db_save_count += 1;
 	}
     }
@@ -130,64 +237,37 @@
 	    },
 	});
 	
-	local_version = parseInt(db.getItem(db_id + '[' + form_id + '][version]'))
+	local_version = parseInt(db.getItem(base_key() + '[version]'))
 	
 	autosave_debug('Found local version: ' + local_version + ' and remote version: ' + remote_version);
 
 	if (isNaN(local_version)) {
 	    autosave_debug('Using remote version - local version unknown');
+	    
+	    if (!isNaN(remote_version)) {
+		db_save_version = remote_version;
+	    }
 	    return false;
 	}
 
 	if (isNaN(remote_version)) {
 	    autosave_debug('Using local version - remote version unknown');
-	    return false;
+	    db_save_version = local_version;
+	    return true;
 	}
 
+	db_save_version = Math.max(local_version, remote_version);
 	return (local_version > remote_version);
-    }
-
-    function load_local_data() {
-	// Updates the form using the local data.
-
-	var data = {};
-	var fields = [];
-	var field_name, value_count, value;
-	$.ajax({
-	    type: 'POST',
-	    url: 'jq_autosave_get_fields',
-	    data: {form_id: form_id},
-	    dataType: 'json',
-	    async: false,
-	    success: function(d) {
-		for (i = 0; i < d.length; i ++) {
-		    fields[i] = d[i];
-		}
-	    },
-	});
-
-	for (i = 0; i < fields.length; i++) {
-	    field_name = fields[i];
-	    value_count = db.getItem(db_id + '[' + form_id + '][fields][' + field_name + '][count]');
-	    value = null;
-
-	    if (value_count == null) {
-		value = db.getItem(db_id + '[' + form_id + '][fields][' + field_name + ']');
-	    } else {
-		value = [];
-		for (j = 0; j < parseInt(value_count); j++) {
-		    value[i] = db.getItem(db_id + '[' + form_id + '][fields][' + field_name + '][' + j + ']');
-		}
-	    }
-
-	    if (value != null) {
-		$('#' + form_id + ' [name=' + field_name + ']').val(value);
-	    }
-	}
     }
 
     $.fn.autosaveform = function(opts) {
 	form_id = this.attr('id');
+
+	// We clean all entries in the form.
+	var form = $('#' + form_id);
+	form.find('input[type=text], input[type=textarea]').val('');
+	form.find('input[type=checkbox]').removeAttr('checked');
+	form.find('input[type=select] option').removeAttr('selected');
 
 	if (typeof(opts) != undefined) {
 	    options = $.extend({}, defaults, opts);
