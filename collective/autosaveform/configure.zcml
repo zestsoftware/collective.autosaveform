@@ -57,5 +57,12 @@
       class=".browser.RegisterSampleForm"
       permission="zope2.View"
       />
+
+  <browser:page
+      for="*"
+      name="process_autosaveform_sample"
+      class=".browser.ProcessSampleForm"
+      permission="zope2.View"
+      />
  
 </configure>

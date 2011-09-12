@@ -23,8 +23,13 @@
     var SELECT = 3;
     var TEXTAREA = 4;
 
+    // Exception raised when trying to load a form that is marked
+    // as processed on server side.
+    var FormProcessedException = 'exception raised when form is marked as processed';
+
     function autosave_debug(msg) {
 	// Simple debug function.
+
 	if (options['debug_mode'] && typeof(console) != 'undefined') {
 	    console.log('[collective.autosaveform] ' + msg);
 	}
@@ -32,6 +37,7 @@
 
     function initDatabase() {
 	// Checks if local storage is enabled.
+
 	try {
 	    db = window['localStorage'];
 	} catch (e) {
@@ -65,6 +71,7 @@
     function clean_data(field_name) {
 	// Removes all entries for the form. If field_name is specified,
 	// only deletes entries for this field.
+
 	if (typeof(db) == 'undefined') {
 	    return;
 	}
@@ -91,6 +98,15 @@
 	    db.removeItem(to_delete[i]);
 	}
     };
+
+    function clean_form() {
+	// Cleans all entries in the form.
+
+	var form = $('#' + form_id);
+	form.find('input[type=text], input[type=textarea]').val('');
+	form.find('input[type=checkbox]').removeAttr('checked');
+	form.find('input[type=select] option').removeAttr('selected');
+    }
 
     function insert_data(field_name, value) {
 	// Insert a new entry in the local database.
@@ -217,6 +233,7 @@
 
     function auto_save() {
 	// Function than saves automatically every x seconds.
+
 	save_form();
 	setTimeout(auto_save, options['auto_save_delay']);
     }
@@ -224,7 +241,7 @@
     function use_local_version() {
 	// Return true is the local version is younger than the remote one.
 
-	var remote_version, local_version;
+	var remote_version, local_version, form_processed;
 
 	$.ajax({
 	    type: 'POST',
@@ -234,9 +251,14 @@
 	    async: false,
 	    success: function(d) {
 		remote_version = parseInt(d['version']);
+		form_processed = d['processed'];
 	    },
 	});
 	
+	if (form_processed) {
+	    throw FormProcessedException;
+	}
+
 	local_version = parseInt(db.getItem(base_key() + '[version]'))
 	
 	autosave_debug('Found local version: ' + local_version + ' and remote version: ' + remote_version);
@@ -262,13 +284,6 @@
 
     $.fn.autosaveform = function(opts) {
 	form_id = this.attr('id');
-
-	// We clean all entries in the form.
-	var form = $('#' + form_id);
-	form.find('input[type=text], input[type=textarea]').val('');
-	form.find('input[type=checkbox]').removeAttr('checked');
-	form.find('input[type=select] option').removeAttr('selected');
-
 	if (typeof(opts) != undefined) {
 	    options = $.extend({}, defaults, opts);
 	}
@@ -277,10 +292,26 @@
 	initDatabase();
 
 	// We first load existing data.
-	if (use_local_version()) {
-	    load_local_data();
-	} else {
-	    $.pyproxy_call('jq_autosave_form_load', {'form_id':  form_id});
+	try {
+	    var local_version = use_local_version();
+
+	    // We only clean the form is we are sure that we'll repopulate it
+	    // with data.
+	    clean_form();
+
+	    if (local_version) {
+		load_local_data();
+	    } else {
+		$.pyproxy_call('jq_autosave_form_load', {'form_id':  form_id});
+	    }
+	} catch (e) {
+	    if (e == FormProcessedException) {
+		// Ok the form was already processed, we won't load anything.
+		clean_data();
+		return;
+	    }
+	    // We have an unexpected error, we throw it again for debugging purposes.
+	    throw e;
 	}
 
 	// Then we bind changing events.

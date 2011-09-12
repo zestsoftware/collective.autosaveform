@@ -74,6 +74,10 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
         return self._get_anno_by_key('autosave_form_versions',
                                      PersistentDict)
 
+    def _get_processed_forms(self):
+        return self._get_anno_by_key('autosave_form_processed',
+                                     PersistentDict)
+
     def register_form(self, form_id, fields):
         """ Create a new entry in the list of forms.
         Raises an IndexError exception if the id is already in use.
@@ -102,6 +106,13 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
             return versions[form_id][user_id]
         except:
             return -1
+
+    def is_form_processed(self, form_id, user_id):
+        processed = self._get_processed_forms()
+        try:
+            return processed[form_id][user_id]
+        except:
+            return False
 
     def update_form_fields(self, form_id, fields):
         """ Updates the list of fields for a form.
@@ -148,13 +159,22 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
         """ Fetches the values the user entered for a given form.
         """
         values = self._get_saved_values()
-        return dict(values[form_id][user_id].items())
+        try:
+            return dict(values[form_id][user_id].items())
+        except:
+            return {}
 
-    def mark_form_saved(self, form_id, user_id):
+    def mark_form_processed(self, form_id, user_id):
         """ Cleans values entered by the user once the form has
         been processed.
         """
         values = self._get_saved_values()
+
+        processed = self._get_processed_forms()
+        if not form_id in processed:
+            processed[form_id] = PersistentDict()
+        processed[form_id][user_id] = True
+
         try:
             del values[form_id][user_id]
         except:
@@ -163,5 +183,12 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
             del versions[form_id][user_id]
         except:
             pass
+
+    def mark_form_unprocessed(self, form_id, user_id):
+        processed = self._get_processed_forms()
+        if not form_id in processed:
+            processed[form_id] = PersistentDict()
+
+        processed[form_id][user_id] = False
 
 atapi.registerType(AutoSaveFormTool, config.PROJECTNAME)

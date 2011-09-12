@@ -56,8 +56,11 @@ class AutoSaveAjax(BrowserView):
             version = self.autosave_tool.get_saved_version(form_id, user_id)
         else:
             version = -1
-            
-        return json.dumps({'version': version})
+        processed = self.autosave_tool.is_form_processed(form_id, user_id) 
+
+        # The user wants to enter data in the form again, so we'll mark it as undone.
+        self.autosave_tool.mark_form_unprocessed(form_id, user_id)
+        return json.dumps({'version': version, 'processed': processed})
 
     def save_form(self):
         """ Saves all values of the submitted form.
@@ -124,13 +127,12 @@ class AutoSaveAjax(BrowserView):
 
         return jq
         
-class RegisterSampleForm(BrowserView):
+class RegisterSampleForm(AutoSaveAjax):
     """ Simple view use to enable the form located at page 'autosave_sample'
     """
     def __call__(self):
-        tool = getToolByName(self.context, 'portal_autosaveform')
         try:
-            tool.register_form(
+            self.autosave_tool.register_form(
                 'autosave_sample',
                 {'text_field': config.TEXT,
                  'radio_field': config.RADIO,
@@ -143,3 +145,12 @@ class RegisterSampleForm(BrowserView):
         except IndexError:
             # The form is already registered.
             return 'The form is already registered'
+
+
+class ProcessSampleForm(AutoSaveAjax):
+    """ 
+    """
+    def __call__(self):
+        user_id = self.get_user_id()
+        self.autosave_tool.mark_form_processed('autosave_sample', user_id)
+        return self.request.RESPONSE.redirect('autosave_sample')

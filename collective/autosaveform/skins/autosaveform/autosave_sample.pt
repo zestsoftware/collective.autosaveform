@@ -18,7 +18,9 @@
     <div metal:fill-slot="main">
       <h1>This page shows an example of autosave form</h1>
 
-      <form id="autosave_sample">
+      <form id="autosave_sample"
+            method="POST"
+            action="process_autosaveform_sample">
         <div class="field">
           <label>A text field</label>
           <input type="text" name="text_field" />
@@ -101,6 +103,8 @@
           <input type="text" name="unregistered" />
           <p class="discreet">The value for this field will not be saved</p>
         </div>
+
+        <input type="submit" value="Process" />
       </form>
     </div>
   </body>
