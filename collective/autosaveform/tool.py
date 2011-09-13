@@ -98,22 +98,6 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
 
         return dict([(k, v) for k, v in forms[form_id]['fields'].items()])
 
-    def get_saved_version(self, form_id, user_id):
-        """ Returns the saved version of the form.
-        """
-        versions = self._get_saved_versions()
-        try:
-            return versions[form_id][user_id]
-        except:
-            return -1
-
-    def is_form_processed(self, form_id, user_id):
-        processed = self._get_processed_forms()
-        try:
-            return processed[form_id][user_id]
-        except:
-            return False
-
     def update_form_fields(self, form_id, fields):
         """ Updates the list of fields for a form.
         """
@@ -154,6 +138,22 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
             versions[form_id] = PersistentDict()
 
         versions[form_id][user_id] = version
+
+    def get_saved_version(self, form_id, user_id):
+        """ Returns the saved version of the form.
+        """
+        versions = self._get_saved_versions()
+        try:
+            return versions[form_id][user_id]
+        except:
+            return -1
+
+    def is_form_processed(self, form_id, user_id):
+        processed = self._get_processed_forms()
+        try:
+            return processed[form_id][user_id]
+        except:
+            return False
 
     def load_form(self, form_id, user_id):
         """ Fetches the values the user entered for a given form.
