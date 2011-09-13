@@ -1,15 +1,16 @@
 import unittest
 from Testing import ZopeTestCase as ztc
+from Testing.ZopeTestCase import FunctionalDocFileSuite
 
-from collective.autosaveform.tests.base import AutoSaveFormTestCase, OPTIONFLAGS
+from collective.autosaveform.tests.base import AutoSaveFormFunctionnalTestCase, OPTIONFLAGS
 
 def test_suite():
     return unittest.TestSuite([
-        ztc.ZopeDocFileSuite(
-           'tool.rst',
+        FunctionalDocFileSuite(
+           'browser.rst',
             package='collective.autosaveform.tests',
             optionflags=OPTIONFLAGS,
-            test_class=AutoSaveFormTestCase),
+            test_class=AutoSaveFormFunctionnalTestCase),
         ])
 
 if __name__ == '__main__':

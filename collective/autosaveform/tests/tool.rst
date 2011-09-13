@@ -21,7 +21,7 @@ that efficient::
     >>> PersistentList.__repr__ = lambda x: x.__str__()
 
 
-Getting the tool is done by using getToolByName::
+Getting the tool is done by using ``getToolByName``::
 
     >>> self.install_product()
     >>> from Products.CMFCore.utils import getToolByName
@@ -67,7 +67,7 @@ If we try to register the form a second time, we get an error::
     ...
     IndexError: A form is already registered with id "my_form"
 
-Fields for a form can be updated using the update_form_fields method::
+Fields for a form can be updated using the ``update_form_fields`` method::
 
     >>> tool.update_form_fields('my_form', {'a_text_field': config.TEXT,
     ...                                     'a_new_field': config.RADIO})
@@ -76,6 +76,7 @@ Fields for a form can be updated using the update_form_fields method::
 
     >>> tool.get_form_fields('my_form')
     {'a_new_field': 2, 'a_text_field': 0}
+
 
 Saving and getting values
 -------------------------

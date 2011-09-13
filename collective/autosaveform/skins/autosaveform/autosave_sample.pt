@@ -104,7 +104,7 @@
           <p class="discreet">The value for this field will not be saved</p>
         </div>
 
-        <input type="submit" value="Process" />
+        <input type="submit" name="process" value="Process" />
       </form>
     </div>
   </body>

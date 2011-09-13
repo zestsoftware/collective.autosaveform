@@ -1,3 +1,4 @@
+import doctest
 import unittest
 
 #from zope.testing import doctestunit
@@ -12,6 +13,10 @@ from Products.Five import fiveconfigure, zcml
 ptc.setupPloneSite()
 
 import collective.autosaveform
+
+OPTIONFLAGS = (doctest.ELLIPSIS |
+               doctest.NORMALIZE_WHITESPACE)
+
 
 class AutoSaveFormTestCase(ptc.PloneTestCase):
 
@@ -34,3 +39,7 @@ class AutoSaveFormTestCase(ptc.PloneTestCase):
         ztc.installPackage(collective.autosaveform)
         self.addProfile('collective.autosaveform:default')
         self.addProduct('collective.autosaveform')
+
+class AutoSaveFormFunctionnalTestCase(AutoSaveFormTestCase,
+                                      ptc.FunctionalTestCase):
+    pass
