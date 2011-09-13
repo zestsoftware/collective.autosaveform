@@ -6,7 +6,7 @@ from collective.autosaveform.tests.base import AutoSaveFormTestCase
 def test_suite():
     return unittest.TestSuite([
         ztc.ZopeDocFileSuite(
-           'tool.txt',
+           'tool.rst',
             package='collective.autosaveform.tests',
            test_class=AutoSaveFormTestCase),
         ])
