@@ -59,7 +59,7 @@ We'll register one form::
     >>> tool._get_processed_forms()
     {}
 
-If we try to register the form a second time, we get an error:
+If we try to register the form a second time, we get an error::
 
     >>> tool.register_form('my_form', {'a_text_field': config.TEXT,
     ...                                'a_checkbox_field': config.CHECKBOX})
@@ -67,7 +67,7 @@ If we try to register the form a second time, we get an error:
     ...
     IndexError: A form is already registered with id "my_form"
 
-Fields for a form can be updated using the update_form_fields method:
+Fields for a form can be updated using the update_form_fields method::
 
     >>> tool.update_form_fields('my_form', {'a_text_field': config.TEXT,
     ...                                     'a_new_field': config.RADIO})
