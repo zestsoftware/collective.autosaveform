@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.2 (unreleased)
+0.2 (2011-10-13)
 ----------------
 
 - Bugfix: calback was not called when the form is marked as
