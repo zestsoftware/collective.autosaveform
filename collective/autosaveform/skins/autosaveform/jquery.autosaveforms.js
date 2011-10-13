@@ -4,7 +4,8 @@
 		    'auto_save_delay': 5000,  // Delay between each auto-save (in milliseconds)
 		    'keypress_count' : 10,    // Number of keys needed to be pressed before running auto-save
 		    'localsave_count': 10,    // Number of local saves before sending data.
-		    'debug_mode': false,
+		    'debug_mode': false,      // 
+		    'callback': null          // Functon to call once the form has been filled.
 		   };   
     var options = {};
 
@@ -16,7 +17,7 @@
     var db_save_count = 0;
     var db_save_version = 0;
 
-    // COnfig variables.
+    // Config variables.
     var TEXT = 0;
     var CHECKBOX = 1;
     var RADIO = 2;
@@ -91,8 +92,6 @@
 	    }
 	}
 
-	autosave_debug('Deleting entries: ' + to_delete);
-
 	// We delete the entries.
 	for (var i = 0; i < to_delete.length; i++) {
 	    db.removeItem(to_delete[i]);
@@ -101,7 +100,6 @@
 
     function clean_form() {
 	// Cleans all entries in the form.
-
 	var form = $('#' + form_id);
 	form.find('input[type=text], input[type=textarea]').val('');
 	form.find('input[type=checkbox]').removeAttr('checked');
@@ -182,7 +180,7 @@
 			    value = [value];
 			}
 			for (i = 0; i < value.length; i++) {
-			    $('#' + form_id + ' select[name=' + field_name + '] option[value=' + value[i] + ']').attr('selected', 'selected')
+			    $('#' + form_id + ' select[name=' + field_name + '] option[value=' + value[i] + ']').attr('selected', 'selected');
 			}
 			continue;
 		    }
@@ -301,8 +299,11 @@
 
 	    if (local_version) {
 		load_local_data();
+		if (typeof(options['callback']) == 'function') {
+		    options['callback']();
+		}
 	    } else {
-		$.pyproxy_call('jq_autosave_form_load', {'form_id':  form_id});
+		$.pyproxy_call('jq_autosave_form_load', {'form_id':  form_id}, options['callback']);
 	    }
 	} catch (e) {
 	    if (e == FormProcessedException) {
@@ -315,7 +316,7 @@
 	}
 
 	// Then we bind changing events.
-	var key_counter = 0
+	var key_counter = 0;
 	this.keypress(function(e) {
 	    key_counter += 1;
 	    if (key_counter == options['keypress_count']) {
