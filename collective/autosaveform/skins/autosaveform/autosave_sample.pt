@@ -53,6 +53,15 @@
         </div>
 
         <div class="field">
+          <label>A single checkbox field without value</label>
+          <label>
+            <input type="checkbox" name="checkbox_field_no_value" />
+            Yes or no ?
+          </label>
+        </div>
+
+
+        <div class="field">
           <label>A multiple checkbox field</label>
           <label>
             <input type="checkbox" name="multi_checkbox_field" value="checkbox1" />

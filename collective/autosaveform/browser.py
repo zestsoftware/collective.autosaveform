@@ -121,7 +121,10 @@ class AutoSaveAjax(BrowserView):
                 if not isinstance(value, list):
                     value = [value]
                 for val in value:
-                    jq('#%s input[name=%s][value=%s]' % (form_id, field_name, val)).attr('checked', 'checked')
+                    if val == 'on':
+                        jq('#%s input[name=%s]' % (form_id, field_name)).attr('checked', 'checked')
+                    else:
+                        jq('#%s input[name=%s][value=%s]' % (form_id, field_name, val)).attr('checked', 'checked')
             else:
                 jq('#%s [name=%s]' % (form_id, field_name)).attr('value', value)
 
@@ -131,20 +134,21 @@ class RegisterSampleForm(AutoSaveAjax):
     """ Simple view use to enable the form located at page 'autosave_sample'
     """
     def __call__(self):
+        fields = {'text_field': config.TEXT,
+                  'radio_field': config.RADIO,
+                  'checkbox_field': config.CHECKBOX,
+                  'checkbox_field_no_value': config.CHECKBOX,
+                  'multi_checkbox_field': config.CHECKBOX,
+                  'select_field': config.SELECT,
+                  'multi_select_field': config.SELECT,
+                  'textarea_field': config.TEXTAREA}
         try:
-            self.autosave_tool.register_form(
-                'autosave_sample',
-                {'text_field': config.TEXT,
-                 'radio_field': config.RADIO,
-                 'checkbox_field': config.CHECKBOX,
-                 'multi_checkbox_field': config.CHECKBOX,
-                 'select_field': config.SELECT,
-                 'multi_select_field': config.SELECT,
-                 'textarea_field': config.TEXTAREA})
+            self.autosave_tool.register_form('autosave_sample', fields)
             return 'Form registered'
         except IndexError:
             # The form is already registered.
-            return 'The form is already registered'
+            self.autosave_tool.update_form_fields('autosave_sample', fields)
+            return 'The form is already registered - fields have been updated'
 
 
 class ProcessSampleForm(AutoSaveAjax):

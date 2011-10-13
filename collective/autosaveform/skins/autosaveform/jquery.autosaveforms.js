@@ -179,6 +179,7 @@
 			if (typeof(value) == 'string') {
 			    value = [value];
 			}
+
 			for (i = 0; i < value.length; i++) {
 			    $('#' + form_id + ' select[name=' + field_name + '] option[value=' + value[i] + ']').attr('selected', 'selected');
 			}
@@ -188,6 +189,17 @@
 		    if (field_type == CHECKBOX || field_type == RADIO) {
 			if (typeof(value) == 'string') {
 			    value = [value];
+			}
+
+			if (value == ["on"] || value == "on") {
+			    // That's a weird case. If you have a checkbox without a value that is checked,
+			    // the value will be considered to be 'on'.
+			    if ($('#' + form_id + ' input[name=' + field_name + '][value=on]').length == 0) {
+				// There is no checkbox with value 'on', so we'll just set any checkbox with this name
+				// to be checked.
+				$('#' + form_id + ' input[name=' + field_name + ']').attr('checked', 'checked');
+				continue
+			    }
 			}
 
 			for (i = 0; i < value.length; i++) {
