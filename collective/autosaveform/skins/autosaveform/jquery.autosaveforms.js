@@ -321,6 +321,9 @@
 	    if (e == FormProcessedException) {
 		// Ok the form was already processed, we won't load anything.
 		clean_data();
+		if (typeof(options['callback']) == 'function') {
+		    options['callback']();
+		}
 		return;
 	    }
 	    // We have an unexpected error, we throw it again for debugging purposes.
