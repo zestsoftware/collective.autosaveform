@@ -126,7 +126,11 @@ class AutoSaveAjax(BrowserView):
                     else:
                         jq('#%s input[name=%s][value=%s]' % (form_id, field_name, val)).attr('checked', 'checked')
             else:
-                jq('#%s [name=%s]' % (form_id, field_name)).attr('value', value)
+                try:
+                    jq('#%s [name=%s]' % (form_id, field_name)).attr('value', value)
+                except TypeError:
+                    logger.info('Can not use value "%s" to set field %s in form #%s - type is ' % (
+                        value, field_name, form_id, type(value)))
 
         return jq
         

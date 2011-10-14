@@ -324,10 +324,16 @@
 		if (typeof(options['callback']) == 'function') {
 		    options['callback']();
 		}
-		return;
+
+		// We run save_form for a simple reason: checking if a form has been
+		// processed marks it as unprocessed.
+		// So if there is data available in the page, they might be removed
+		// the next time the page is saved.
+		save_form();
+	    } else {
+		// We have an unexpected error, we throw it again for debugging purposes.
+		throw e;
 	    }
-	    // We have an unexpected error, we throw it again for debugging purposes.
-	    throw e;
 	}
 
 	// Then we bind changing events.
@@ -336,7 +342,7 @@
 	    key_counter += 1;
 	    if (key_counter == options['keypress_count']) {
 		key_counter = 0;
-		save_form(form_id);
+		save_form();
 	    }
 	});
 

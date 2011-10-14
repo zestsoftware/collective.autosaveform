@@ -1,4 +1,5 @@
 import os
+import logging
 from datetime import datetime
 
 from AccessControl import Unauthorized
@@ -18,6 +19,7 @@ from zope.interface import Interface, implements
 
 import config
 
+logger = logging.getLogger('collective.autosaveform.tool')
 
 class IAutoSaveFormTool(Interface):
     """ marker interface"""
@@ -111,8 +113,9 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
         # Add the new ones.
         for field_id, field_type in fields.items():
             if not field_type in config.INPUT_TYPES:
-                # XXX - add some logging.
-                continue
+                logging.info('Wrong field type for %s in form %s. Type %s unknown' % (field_id,
+                                                                                      form_id,
+                                                                                      field_type))
 
             forms[form_id]['fields'][field_id] = field_type
 
@@ -169,6 +172,7 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
         been processed.
         """
         values = self._get_saved_values()
+        versions = self._get_saved_versions()
 
         processed = self._get_processed_forms()
         if not form_id in processed:
@@ -178,11 +182,27 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
         try:
             del values[form_id][user_id]
         except:
-            pass
+            logger.info('Can not delete values stored for user %s and form %s' % (user_id,
+                                                                                  form_id))
+            logger.info('values[%s]: %s | values[%s][%s]: %s' % (
+                form_id,
+                values.get(form_id, None),
+                form_id,
+                user_id,
+                values.get(form_id, {}).get(user_id, None)))
+                
         try:
             del versions[form_id][user_id]
         except:
-            pass
+            logger.info('Can not delete version stored for user %s and form %s' % (user_id,
+                                                                                   form_id))
+            logger.info('versions[%s]: %s | versions[%s][%s]: %s' % (
+                form_id,
+                versions.get(form_id, None),
+                form_id,
+                user_id,
+                versions.get(form_id, {}).get(user_id, None)))
+
 
     def mark_form_unprocessed(self, form_id, user_id):
         processed = self._get_processed_forms()
