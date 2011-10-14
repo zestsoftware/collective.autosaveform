@@ -4,7 +4,18 @@ Changelog
 0.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Added some logging in the tool to help debugging. [vincent]
+
+- Bugfix: only empty form when we are sure there either a local or
+  remote save of the form. [vincent]
+
+- Bugfix: we now automatically save the form after noticing it was
+  marked as processed (that removes the problem found when opening a
+  form marked as processed then reloading it, form was
+  emptied). [vincent]
+
+- Bugfix: deleting version when marking a form as processed did not
+  work. [vincent]
 
 
 0.2 (2011-10-13)

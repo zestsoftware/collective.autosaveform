@@ -24,9 +24,9 @@
     var SELECT = 3;
     var TEXTAREA = 4;
 
-    // Exception raised when trying to load a form that is marked
-    // as processed on server side.
+    // Exceptions
     var FormProcessedException = 'exception raised when form is marked as processed';
+    var NoDataException = 'expection raised when both local and remote version are unknown'
 
     function autosave_debug(msg) {
 	// Simple debug function.
@@ -273,11 +273,13 @@
 	
 	autosave_debug('Found local version: ' + local_version + ' and remote version: ' + remote_version);
 
-	if (isNaN(local_version)) {
-	    autosave_debug('Using remote version - local version unknown');
-	    
-	    if (!isNaN(remote_version)) {
+	if (isNaN(local_version)) {    
+	    if (isNaN(remote_version) || remote_version == -1) {
+		db_save_version = 1;
+		throw NoDataException;
+	    } else {
 		db_save_version = remote_version;
+		autosave_debug('Using remote version - local version unknown');
 	    }
 	    return false;
 	}
@@ -304,11 +306,10 @@
 	// We first load existing data.
 	try {
 	    var local_version = use_local_version();
+	    clean_form();
 
 	    // We only clean the form is we are sure that we'll repopulate it
 	    // with data.
-	    clean_form();
-
 	    if (local_version) {
 		load_local_data();
 		if (typeof(options['callback']) == 'function') {
@@ -330,6 +331,9 @@
 		// So if there is data available in the page, they might be removed
 		// the next time the page is saved.
 		save_form();
+	    } else if (e == NoDataException){
+		// We have no local or remote data, there's not that much to do.
+		autosave_debug('Both local and remote version unknown')
 	    } else {
 		// We have an unexpected error, we throw it again for debugging purposes.
 		throw e;
