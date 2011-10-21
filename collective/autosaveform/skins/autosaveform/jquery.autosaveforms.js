@@ -13,8 +13,9 @@
 		    // Class applied to the element containing the warning message.
 		    'warning_class': 'warning',
 		    // Message displayed after loading data in the form.
-		    'warning_msg': 'Data in this form have been loaded from your previous entries but have not been saved. Please submit this form to have them stored'
-		   };   
+		    'warning_msg': 'Data in this form have been loaded from your previous entries but have not been saved. Please submit this form to have them stored',
+		    'back_msg': 'Switch back to original data',
+		   };
     var options = {};
 
     // Local database options.
@@ -315,6 +316,63 @@
 	    container = $('#autosaveform_warning');
 	}
 	container.addClass(options['warning_class']).html(options['warning_msg']).show();
+	container.append('<p><a class="autosave_switch_back">' + options['back_msg'] + '</a></p>');
+	$('a.autosave_switch_back').click(function(e) {
+	    e.preventDefault();
+	    load_original_data();
+	    container.hide();
+	});
+    }
+
+    function save_original_data() {
+	// Saves the original data for the form.
+	var form = $('#' + form_id);
+	form.find('input[type=text], input[type=hidden], textarea').each(function() {
+	    var el = $(this);
+	    el.attr('autosave_original_value', el.val());
+	});
+
+	form.find('option').each(function() {
+	    var el = $(this);
+	    if (el.attr('selected')) {
+		el.attr('autosave_original_selected', '1');
+	    }
+	});
+
+	form.find('input[type=radio], input[type=checkbox]').each(function() {
+	    var el = $(this);
+	    if (el.attr('checked')) {
+		el.attr('autosave_original_checked', '1');
+	    }
+	});
+    }
+
+    function load_original_data() {
+	// Removes entries done by autosave.
+	var form = $('#' + form_id);
+	form.find('input[type=text], input[type=hidden], textarea').each(function() {
+	    var el = $(this);
+	    el.val(el.attr('autosave_original_value'));
+	});
+
+	form.find('option').each(function() {
+	    var el = $(this);
+	    if (el.attr('autosave_original_selected') == '1') {
+		el.attr('selected', 'selected');
+	    } else {
+		el.removeAttr('selected');
+	    }
+	});
+
+	form.find('input[type=radio], input[type=checkbox]').each(function() {
+	    var el = $(this);
+	    if (el.attr('autosave_original_checked') == '1') {
+		el.attr('checked', 'checked');
+	    } else {
+		el.removeAttr('checked');
+	    }
+	});
+	
     }
 
     $.fn.autosaveform = function(opts) {
@@ -322,6 +380,8 @@
 	if (typeof(opts) != undefined) {
 	    options = $.extend({}, defaults, opts);
 	}
+
+	save_original_data();
 	
 	// Initialize the database.
 	initDatabase();
