@@ -17,7 +17,8 @@ from Products.ATContentTypes.content.document import ATDocument
 from Products.ATContentTypes.content.document import ATDocumentSchema
 from zope.interface import Interface, implements
 
-import config
+from collective.autosaveform import config, exceptions
+from collective.autosaveform.utils import deep_seek
 
 logger = logging.getLogger('collective.autosaveform.tool')
 
@@ -25,7 +26,6 @@ class IAutoSaveFormTool(Interface):
     """ marker interface"""
 
 AutoSaveToolSchema = ATDocumentSchema.copy()
-
 
 class AutoSaveFormTool(ImmutableId, ATDocument):
     """
@@ -82,11 +82,12 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
 
     def register_form(self, form_id, fields):
         """ Create a new entry in the list of forms.
-        Raises an IndexError exception if the id is already in use.
+        Raises a FormIdInUse exception if the id is already in use.
         """
         forms = self._get_forms_list()
         if form_id in forms.keys():
-            raise IndexError('A form is already registered with id "%s"' % form_id)
+            raise exceptions.FormIdInUse(
+                'A form is already registered with id "%s"' % form_id)
 
         forms[form_id] = PersistentDict()
         self.update_form_fields(form_id, fields)
@@ -96,7 +97,8 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
         """
         forms = self._get_forms_list()
         if not form_id in forms:
-            raise IndexError('Unknown id "%s": this form has not been registered' % form_id)
+            raise exceptions.UnregisteredForm(
+                'Unknown id "%s": this form has not been registered' % form_id)
 
         return dict([(k, v) for k, v in forms[form_id]['fields'].items()])
 
@@ -105,7 +107,8 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
         """
         forms = self._get_forms_list()
         if not form_id in forms:
-            raise IndexError('Unknown id "%s": this form has not been registered' % form_id)
+            raise exceptions.UnregisteredForm(
+                'Unknown id "%s": this form has not been registered' % form_id)
 
         # Erase previous entries.
         forms[form_id]['fields'] = PersistentDict()
@@ -113,10 +116,10 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
         # Add the new ones.
         for field_id, field_type in fields.items():
             if not field_type in config.INPUT_TYPES:
-                logging.info('Wrong field type for %s in form %s. Type %s unknown' % (field_id,
-                                                                                      form_id,
-                                                                                      field_type))
-
+                logging.info(
+                    'Wrong field type for %s in form %s. Type %s unknown' % (field_id,
+                                                                             form_id,
+                                                                             field_type))
             forms[form_id]['fields'][field_id] = field_type
 
     def save_form(self, form_id, user_id, version, data):
@@ -128,7 +131,8 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
         versions = self._get_saved_versions()
 
         if not form_id in forms:
-            raise IndexError('Unknown id "%s": this form has not been registered' % form_id)
+            raise exceptions.UnregisteredForm(
+                'Unknown id "%s": this form has not been registered' % form_id)
 
         if not form_id in values:
             values[form_id] = PersistentDict()
@@ -146,26 +150,17 @@ class AutoSaveFormTool(ImmutableId, ATDocument):
         """ Returns the saved version of the form.
         """
         versions = self._get_saved_versions()
-        try:
-            return versions[form_id][user_id]
-        except:
-            return -1
+        return deep_seek(versions, [form_id, user_id], -1)
 
     def is_form_processed(self, form_id, user_id):
         processed = self._get_processed_forms()
-        try:
-            return processed[form_id][user_id]
-        except:
-            return False
+        return deep_seek(processed, [form_id, user_id], False)
 
     def load_form(self, form_id, user_id):
         """ Fetches the values the user entered for a given form.
         """
         values = self._get_saved_values()
-        try:
-            return dict(values[form_id][user_id].items())
-        except:
-            return {}
+        return dict(deep_seek(values, [form_id, user_id], {}).items())
 
     def mark_form_processed(self, form_id, user_id):
         """ Cleans values entered by the user once the form has

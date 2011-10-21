@@ -65,7 +65,7 @@ If we try to register the form a second time, we get an error::
     ...                                'a_checkbox_field': config.CHECKBOX})
     Traceback (most recent call last):
     ...
-    IndexError: A form is already registered with id "my_form"
+    FormIdInUse: A form is already registered with id "my_form"
 
 Fields for a form can be updated using the ``update_form_fields`` method::
 
@@ -93,7 +93,7 @@ If we try to save values for a form than is not registered, we get an error::
     ...                                                    'a_new_field': 'A value'})
     Traceback (most recent call last):
     ...
-    IndexError: Unknown id "my_unknown_form": this form has not been registered
+    UnregisteredForm: Unknown id "my_unknown_form": this form has not been registered
 
 
 Once values have been saved, we can get some info about the

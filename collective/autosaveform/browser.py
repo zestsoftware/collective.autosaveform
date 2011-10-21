@@ -52,14 +52,14 @@ class AutoSaveAjax(BrowserView):
         """
         form_id = self.request.form.get('form_id', None)
         user_id = self.get_user_id()
-        if form_id:
-            version = self.autosave_tool.get_saved_version(form_id, user_id)
-        else:
-            version = -1
+
+        version = self.autosave_tool.get_saved_version(form_id, user_id)
         processed = self.autosave_tool.is_form_processed(form_id, user_id) 
 
-        # The user wants to enter data in the form again, so we'll mark it as undone.
+        # The user wants to enter data in the form again, so we'll mark it
+        # as unprocessed.
         self.autosave_tool.mark_form_unprocessed(form_id, user_id)
+
         return json.dumps({'version': version, 'processed': processed})
 
     def save_form(self):

@@ -95,7 +95,7 @@ ones return plain JSON.
 form with their type (based on collective.autosave.config definitions)::
 
     >>> send_data('jq_autosave_get_fields', {'form_id': form_id})
-    '{"select_field": 3, "checkbox_field": 1, "textarea_field": 4, "radio_field": 2, "multi_checkbox_field": 1, "multi_select_field": 3, "text_field": 0}'
+    '{"select_field": 3, "checkbox_field": 1, "textarea_field": 4, "checkbox_field_no_value": 1, "radio_field": 2, "multi_checkbox_field": 1, "multi_select_field": 3, "text_field": 0}'
 
 Results of this method do not change until we call the
 ``update_form_fields`` method of ``portal_autosaveforms``.
@@ -126,12 +126,14 @@ a form to see if data have been saved correctly::
     '[{"args": ["selected", "selected"], "call": "attr", "selector": "#autosave_sample select[name=select_field] option[value=select4]"},
      {"args": ["checked", "checked"], "call": "attr", "selector": "#autosave_sample input[name=checkbox_field][value=checkbox]"},
      {"args": ["value", "A loooong test about thing and stuff"], "call": "attr", "selector": "#autosave_sample [name=textarea_field]"},
+     {"args": ["checked", "checked"], "call": "attr", "selector": "#autosave_sample input[name=checkbox_field_no_value][value=None]"},
      {"args": ["checked", "checked"], "call": "attr", "selector": "#autosave_sample input[name=radio_field][value=radio2]"},
      {"args": ["checked", "checked"], "call": "attr", "selector": "#autosave_sample input[name=multi_checkbox_field][value=checkbox2]"},
      {"args": ["checked", "checked"], "call": "attr", "selector": "#autosave_sample input[name=multi_checkbox_field][value=checkbox3]"},
      {"args": ["selected", "selected"], "call": "attr", "selector": "#autosave_sample select[name=multi_select_field] option[value=select1]"},
      {"args": ["selected", "selected"], "call": "attr", "selector": "#autosave_sample select[name=multi_select_field] option[value=select3]"},
      {"args": ["value", "Some text input"], "call": "attr", "selector": "#autosave_sample [name=text_field]"}]'
+
 
 This will be translated by the JS side of ``jquery.pyproxy`` into jQuery
 calls to update the page content.
@@ -150,14 +152,14 @@ We can now process the form by clicking on the ``Process`` button of the form::
 The form is now marked as processed::
 
     >>> send_data('jq_autosave_get_version', {'form_id': form_id})
-    '{"version": "1", "processed": true}'
+    '{"version": -1, "processed": true}'
 
 Note: calling the ``jq_autosave_get_version`` will mark again the form
 as not-processed. The reason is that, if we call this view, that means
 the user has opened the form again. So, we'll want to store data again::
 
     >>> send_data('jq_autosave_get_version', {'form_id': form_id})
-    '{"version": "1", "processed": false}'
+    '{"version": -1, "processed": false}'
 
 But the data of the form will have been wiped out::
 
