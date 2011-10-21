@@ -4,6 +4,12 @@ Changelog
 0.3 (unreleased)
 ----------------
 
+- display a warning message to tell the user that data in the form
+  where automatically put back but he still has to process the
+  form. [vincent] 
+
+- use custom exceptions. [vincent]
+
 - Added some logging in the tool to help debugging. [vincent]
 
 - Bugfix: only empty form when we are sure there either a local or

@@ -5,7 +5,15 @@
 		    'keypress_count' : 10,    // Number of keys needed to be pressed before running auto-save
 		    'localsave_count': 10,    // Number of local saves before sending data.
 		    'debug_mode': false,      // 
-		    'callback': null          // Functon to call once the form has been filled.
+		    'callback': null,         // Function to call once the form has been filled.
+		    // If set to true, shows a warning message after filling form with data.
+		    'show_warning': true,
+		    // Selector for the element in which the warning message is displayed. If nothing is found, created a new div before the form.
+		    'warning_selector': '#autosaveform_warning',
+		    // Class applied to the element containing the warning message.
+		    'warning_class': 'warning',
+		    // Message displayed after loading data in the form.
+		    'warning_msg': 'Data in this form have been loaded from your previous entries but have not been saved. Please submit this form to have them stored'
 		   };   
     var options = {};
 
@@ -294,6 +302,21 @@
 	return (local_version > remote_version);
     }
 
+    function display_loading_warning() {
+	// After updating the form with saved data, we inform the user that
+	// he should save the data.
+	if (!options['show_warning']) {
+	    return;
+	}
+
+	var container = $(options['warning_selector']);
+	if (container.length == 0) {
+	    $('#' + form_id).before('<div id="autosaveform_warning"></div>');
+	    container = $('#autosaveform_warning');
+	}
+	container.addClass(options['warning_class']).html(options['warning_msg']).show();
+    }
+
     $.fn.autosaveform = function(opts) {
 	form_id = this.attr('id');
 	if (typeof(opts) != undefined) {
@@ -318,6 +341,8 @@
 	    } else {
 		$.pyproxy_call('jq_autosave_form_load', {'form_id':  form_id}, options['callback']);
 	    }
+	    display_loading_warning();
+
 	} catch (e) {
 	    if (e == FormProcessedException) {
 		// Ok the form was already processed, we won't load anything.
