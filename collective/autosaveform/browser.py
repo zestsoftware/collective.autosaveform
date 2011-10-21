@@ -5,7 +5,7 @@ import simplejson as json
 
 from jquery.pyproxy.plone import jquery, JQueryProxy
 
-import config
+from collective.autosaveform import config, exceptions
 
 class AutoSaveAjax(BrowserView):
     @property
@@ -43,7 +43,7 @@ class AutoSaveAjax(BrowserView):
 
         try:
             return json.dumps(self.autosave_tool.get_form_fields(form_id))
-        except IndexError:
+        except exceptions.UnregisteredForm:
             return
 
     def get_saved_version(self):
@@ -75,7 +75,7 @@ class AutoSaveAjax(BrowserView):
 
         try:
             fields = self.autosave_tool.get_form_fields(form_id)
-        except IndexError:
+        except exceptions.UnregisteredForm:
             # That was a bad ID.
             return
 
@@ -99,7 +99,7 @@ class AutoSaveAjax(BrowserView):
         try:
             data = self.autosave_tool.load_form(form_id, user_id)
             fields = self.autosave_tool.get_form_fields(form_id)
-        except IndexError:
+        except exceptions.UnregisteredForm:
             return
 
 
@@ -149,7 +149,7 @@ class RegisterSampleForm(AutoSaveAjax):
         try:
             self.autosave_tool.register_form('autosave_sample', fields)
             return 'Form registered'
-        except IndexError:
+        except exceptions.FormIdInUse:
             # The form is already registered.
             self.autosave_tool.update_form_fields('autosave_sample', fields)
             return 'The form is already registered - fields have been updated'
